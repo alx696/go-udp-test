@@ -20,17 +20,21 @@ func run(addr *net.UDPAddr, waitGroup *sync.WaitGroup, limitChan chan bool, tag 
 	}
 	defer c.Close()
 
-	_, e = c.Write([]byte(tag))
-	if e != nil {
-		return e
-	}
+	count := 0
+	for count < 10000 {
+		count++
+		_, e = c.Write([]byte(fmt.Sprint("a", tag, "b", count)))
+		if e != nil {
+			return e
+		}
 
-	buf := make([]byte, 1024)
-	n, e := c.Read(buf)
-	if e != nil {
-		return e
+		buf := make([]byte, 1024)
+		n, e := c.Read(buf)
+		if e != nil {
+			return e
+		}
+		log.Println(string(buf[:n]))
 	}
-	log.Println(string(buf[:n]))
 
 	return nil
 }
@@ -47,7 +51,7 @@ func main() {
 	timeBegin := time.Now()
 	count := 0
 	// 数字比较大时不限制并发的话waitGroup容易卡住不能结束!!!
-	for count < 10000 {
+	for count < 1 {
 		count++
 		waitGroup.Add(1)
 		limitChan <- true
